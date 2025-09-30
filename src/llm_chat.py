@@ -106,9 +106,14 @@ class ChatView:
                 # Import the agent creation function
                 from chroma_agent import create_chroma_agent
                 
+                # Debug: Check if chroma_client exists
+                if not st.session_state.chroma_client:
+                    st.sidebar.error("❌ ChromaDB client not found. Please restart the app.")
+                    return
+                
                 # Create agent with the correct Google ADK pattern
                 self.agent = create_chroma_agent(
-                    chroma_client=self.chroma_client,
+                    chroma_client=st.session_state.chroma_client,
                     model=model_name,
                     instructions=system_prompt,
                     api_key=api_key
@@ -203,11 +208,8 @@ class ChatView:
             with st.chat_message("assistant"):
                 with st.spinner("🤖 Thinking..."):
                     try:
-                        # Use the correct LlmAgent method to generate response
-                        response = self.agent.send_message(prompt)
-                        
-                        # Extract text from response
-                        response_text = response.text if hasattr(response, 'text') else str(response)
+                        # Use the ChromaAgentRunner to send message
+                        response_text = self.agent.send_message(prompt)
                         
                         # Display response
                         st.write(response_text)
